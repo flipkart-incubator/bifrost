@@ -59,7 +59,7 @@ The server component takes care of actually running the callable that you have s
 ###Client
 The client interface is like a standard Java ExecutorService. To use it, create builder like the following:
 
-    BifrostExecutor<Map<String,Object>> executor = BifrostExecutor.<Map<String,Object>>builder(HttpCallCommand.class)
+    BifrostExecutor<Map<String,Object>> executor = BifrostExecutor.<Map<String,Object>>builder(TestAction.class)
                     .connection(connection)
                     .objectMapper(mapper)
                     .requestQueue("bifrost-send")
