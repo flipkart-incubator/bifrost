@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.framework;
+package com.flipkart.bifrost.http;
 
-public class RemoteTask<T> {
-    private final RemoteCallable<T> callable;
-
-    public RemoteTask(RemoteCallable<T> callable) {
-        this.callable = callable;
-    }
-
-    public RemoteCallable<T> getCallable() {
-        return callable;
-    }
+public enum RequestType {
+    HTTP_GET,
+    HTTP_POST,
+    HTTP_PUT,
+    HTTP_DELETE
 }
