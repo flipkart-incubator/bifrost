@@ -49,9 +49,10 @@ class RabbitMQExecutionServerListener<T> extends DefaultConsumer {
                                Envelope envelope,
                                AMQP.BasicProperties properties,
                                byte[] body) throws IOException {
-        ProtocolRequest<T> request = mapper.readValue(body, new TypeReference<ProtocolRequest<T>>() {});
         ProtocolResponse protocolResponse = null;
+        ProtocolRequest<T> request = null;
         try {
+            request = mapper.readValue(body, new TypeReference<ProtocolRequest<T>>() {});
             T response = request.getCallable().call();
             protocolResponse = new ProtocolResponse<T>(response);
         } catch (Exception e) {
@@ -59,14 +60,21 @@ class RabbitMQExecutionServerListener<T> extends DefaultConsumer {
             protocolResponse = new ProtocolResponse(BifrostException.ErrorCode.APPLICATION_ERROR,
                                         "Application level error: " + e.getMessage());
         }
-        if(request.isResponseReturned()) {
-            AMQP.BasicProperties replyProperties = new AMQP.BasicProperties.Builder()
-                                                            .correlationId(properties.getCorrelationId())
-                                                            .build();
-            getChannel().basicPublish("", properties.getReplyTo(), replyProperties,
-                                        mapper.writeValueAsBytes(protocolResponse));
+        try {
+            if(null != request && request.isResponseReturned()) {
+                AMQP.BasicProperties replyProperties = new AMQP.BasicProperties.Builder()
+                        .correlationId(properties.getCorrelationId())
+                        .build();
+                if(null != properties.getReplyTo()) {
+                    getChannel().basicPublish("", properties.getReplyTo(), replyProperties,
+                        mapper.writeValueAsBytes(protocolResponse));
+                }
+            }
+            getChannel().basicAck(envelope.getDeliveryTag(), false);
+
+        } catch (Exception e) {
+            logger.error("Error occurred returning: ", e);
         }
-        getChannel().basicAck(envelope.getDeliveryTag(), false);
 
     }
 }

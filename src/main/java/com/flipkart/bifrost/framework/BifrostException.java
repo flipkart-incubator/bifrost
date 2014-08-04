@@ -37,6 +37,7 @@ public class BifrostException extends Exception {
         IO_ERROR,
         SUCCESS_STATUS_MISMATCH,
         INVALID_PROTOCOL_RESPONSE,
+        INVALID_CONNECTION,
         APPLICATION_ERROR
     }
 

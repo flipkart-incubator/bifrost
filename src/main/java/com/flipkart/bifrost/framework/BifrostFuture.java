@@ -48,6 +48,9 @@ public class BifrostFuture<V> implements Future<V> {
     @Override
     public V get() throws InterruptedException, ExecutionException {
         ProtocolResponse<V> response = mainFuture.get();
+        if(null == response) {
+            throw new ExecutionException(new TimeoutException("Execution request timed out..."));
+        }
         if(response.isSuccessful()) {
             return response.getResponse();
         }

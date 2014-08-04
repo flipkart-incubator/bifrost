@@ -17,33 +17,48 @@
 package com.flipkart.bifrost.rabbitmq;
 
 import com.flipkart.bifrost.framework.BifrostException;
+import com.google.common.base.Strings;
 import com.rabbitmq.client.Address;
 import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Connection {
+    private static final Logger logger = Logger.getLogger(Connection.class.getSimpleName());
     private com.rabbitmq.client.Connection connection;
     private List<String> hosts;
+    private String username;
+    private String password;
 
     public Connection(List<String> hosts) throws BifrostException {
         this.hosts = hosts;
     }
 
-    public void start() throws Exception {
+    public Connection(List<String> hosts, String username, String password) {
+        this.hosts = hosts;
+        this.username = username;
+        this.password = password;
+    }
+
+    public void start() throws BifrostException {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         Address brokers[] = new Address[hosts.size()];
         int i=0;
         for(String member : hosts) {
             brokers[i++] = new Address(member);
         }
+        connectionFactory.setUsername(username);
+        connectionFactory.setPassword(password);
+        connectionFactory.setAutomaticRecoveryEnabled(true);
+        connectionFactory.setTopologyRecoveryEnabled(true);
         try {
             connection = connectionFactory.newConnection(
                     //Executors.newFixedThreadPool(configuration.getNumExecutorThreads()),
                     brokers);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new BifrostException(BifrostException.ErrorCode.IO_ERROR, "Could not connect", e);
         }
     }
 

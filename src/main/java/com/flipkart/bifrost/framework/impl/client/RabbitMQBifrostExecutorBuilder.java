@@ -37,6 +37,7 @@ public class RabbitMQBifrostExecutorBuilder<T> {
     private String requestQueue;
     private String responseQueue;
     private Connection connection;
+    private long responseWaitTimeout;
     private Class<? extends RemoteCallable> callerSubType;
 
     protected RabbitMQBifrostExecutorBuilder(Class<? extends RemoteCallable> callerSubType)  {
@@ -73,6 +74,11 @@ public class RabbitMQBifrostExecutorBuilder<T> {
         return this;
     }
 
+    public RabbitMQBifrostExecutorBuilder<T> responseWaitTimeout(long responseWaitTimeout) {
+        this.responseWaitTimeout = responseWaitTimeout;
+        return this;
+    }
+
     public BifrostExecutor<T> build() throws Exception {
         if(null == connection) {
             throw new IllegalArgumentException("Call connection() to set a connection.");
@@ -90,6 +96,10 @@ public class RabbitMQBifrostExecutorBuilder<T> {
             concurrency = (0 == concurrency)? 10 : concurrency;
             logger.warn("No concurrency specified. Setting to 10.");
         }
+        if(0 == responseWaitTimeout) {
+            responseWaitTimeout = 5000;
+            logger.warn("No timeout specified, set to 5000ms");
+        }
         if(Strings.isNullOrEmpty(requestQueue)) {
             throw new IllegalArgumentException("Set request queue name");
         }
@@ -97,6 +107,6 @@ public class RabbitMQBifrostExecutorBuilder<T> {
             throw new IllegalArgumentException("Set response queue name");
         }
         return new RabbitMQBifrostExecutor<T>(connection, executorService, concurrency,
-                                        objectMapper, requestQueue, responseQueue);
+                                        objectMapper, requestQueue, responseQueue, responseWaitTimeout);
     }
 }

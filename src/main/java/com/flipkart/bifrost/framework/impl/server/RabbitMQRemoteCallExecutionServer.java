@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.bifrost.framework.BifrostException;
 import com.flipkart.bifrost.framework.RemoteCallExecutionServer;
 import com.flipkart.bifrost.rabbitmq.Connection;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.rabbitmq.client.Channel;
 
@@ -44,6 +45,10 @@ public class RabbitMQRemoteCallExecutionServer<T> extends RemoteCallExecutionSer
     @Override
     public void start() throws BifrostException {
         try {
+            if(null == connection || null == connection.getConnection()) {
+                throw new BifrostException(BifrostException.ErrorCode.INVALID_CONNECTION,
+                        "The provided connection is invalid. Call start() on connection to start it.");
+            }
             for(int i = 1; i <= concurrency; i++) {
                 Channel channel = connection.getConnection().createChannel();
                 RabbitMQExecutionServerListener<T> listener = new RabbitMQExecutionServerListener<T>(
@@ -61,9 +66,11 @@ public class RabbitMQRemoteCallExecutionServer<T> extends RemoteCallExecutionSer
     public void stop() throws BifrostException {
         try {
             for(RabbitMQExecutionServerListener<T> listener : listeners) {
-                Channel channel = listener.getChannel();
-                channel.basicCancel(listener.getConsumerTag());
-                channel.close();
+                if(!Strings.isNullOrEmpty(listener.getConsumerTag())) {
+                    Channel channel = listener.getChannel();
+                    channel.basicCancel(listener.getConsumerTag());
+                    channel.close();
+                }
             }
         } catch (IOException e) {
             throw new BifrostException(BifrostException.ErrorCode.IO_ERROR, "Error unregistering listener", e);

@@ -39,7 +39,7 @@ public class SampleUsageTest {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
-        Connection connection = new Connection(Lists.newArrayList("localhost"));
+        Connection connection = new Connection(Lists.newArrayList("localhost"), "guest", "guest");
         connection.start();
 
         //Create executor
@@ -49,6 +49,7 @@ public class SampleUsageTest {
                 .requestQueue("bifrost-send")
                 .responseQueue("bifrost-recv")
                 .executorService(Executors.newFixedThreadPool(10))
+                .responseWaitTimeout(20000)
                 .build();
 
         //Create execution server
@@ -61,8 +62,7 @@ public class SampleUsageTest {
         executionServer.start();
 
         //Start making calls
-        RemoteCallable<Map<String,Object>> callable = HttpCallCommand.createGet(
-                "http://jsonip.com/");
+        RemoteCallable<Map<String,Object>> callable = HttpCallCommand.createGet("http://jsonip.com/");
         Future<Map<String,Object>> result = executor.submit(callable);
         Map<String,Object> r = result.get();
 

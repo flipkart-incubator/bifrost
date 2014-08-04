@@ -23,7 +23,7 @@ import com.flipkart.bifrost.framework.RemoteCallExecutionServer;
 import com.flipkart.bifrost.framework.RemoteCallable;
 import com.flipkart.bifrost.rabbitmq.Connection;
 import com.google.common.collect.Lists;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -67,7 +67,7 @@ public class CommunicationTest {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
-        Connection connection = new Connection(Lists.newArrayList("localhost"));
+        Connection connection = new Connection(Lists.newArrayList("localhost"), "guest", "guest");
         connection.start();
 
         BifrostExecutor<Void> executor = BifrostExecutor.<Void>builder(TestAction.class)
@@ -90,18 +90,20 @@ public class CommunicationTest {
 
         long startTime = System.currentTimeMillis();
         AtomicInteger counter = new AtomicInteger(0);
-        int requestCount = 10;
-        CompletionService<Void> ecs
-                = new ExecutorCompletionService<Void>(Executors.newFixedThreadPool(50));
+        int requestCount = 100;
+        CompletionService<Void> ecs = new ExecutorCompletionService<>(Executors.newFixedThreadPool(50));
         List<Future<Void>> futures = Lists.newArrayListWithCapacity(requestCount);
         for(int i = 0; i < requestCount; i++) {
             futures.add(ecs.submit(new ServiceCaller(executor, counter)));
         }
         for(int i = 0; i < requestCount; i++) {
-            ecs.take().get();
+            try {
+                ecs.take().get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
         }
         System.out.println(String.format("Completed: %d in %d ms", counter.get(), (System.currentTimeMillis() - startTime)));
-
         executor.shutdown();
         executionServer.stop();
         connection.stop();
