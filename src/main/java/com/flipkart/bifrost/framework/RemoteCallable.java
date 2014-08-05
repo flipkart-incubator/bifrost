@@ -19,6 +19,11 @@ package com.flipkart.bifrost.framework;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+/**
+ * An interface for the remote method call. Properties in the implementations will be serialized
+ * and forwarded to the executor for execution.
+ * @param <T>
+ */
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public abstract class RemoteCallable<T> {
     @JsonIgnore

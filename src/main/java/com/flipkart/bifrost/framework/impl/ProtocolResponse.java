@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.protocol;
+package com.flipkart.bifrost.framework.impl;
 
 import com.flipkart.bifrost.framework.BifrostException;
 
-public class ProtocolResponse<T> {
+class ProtocolResponse<T> {
     private boolean successful = false;
     private T response;
     private BifrostException.ErrorCode errorCode;

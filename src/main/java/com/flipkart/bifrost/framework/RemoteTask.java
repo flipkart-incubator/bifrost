@@ -16,6 +16,12 @@
 
 package com.flipkart.bifrost.framework;
 
+/**
+ * A wrapper to the enclosed {@link com.flipkart.bifrost.framework.RemoteCallable} object.
+ * This needs to be used to call the {@link com.flipkart.bifrost.framework.BifrostExecutor#submit(RemoteTask)}
+ * for situations where you want to go full async and don't want to wait for a response.
+ * @param <T> should be same as the type parameter for the RemoteCallable object.
+ */
 public class RemoteTask<T> {
     private final RemoteCallable<T> callable;
 

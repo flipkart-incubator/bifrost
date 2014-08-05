@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.framework.impl.server;
+package com.flipkart.bifrost.framework.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.bifrost.framework.BifrostException;
-import com.flipkart.bifrost.protocol.ProtocolRequest;
-import com.flipkart.bifrost.protocol.ProtocolResponse;
+import com.flipkart.bifrost.framework.impl.ProtocolRequest;
+import com.flipkart.bifrost.framework.impl.ProtocolResponse;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;

@@ -16,6 +16,9 @@
 
 package com.flipkart.bifrost.http;
 
+/**
+ * Supported HTTP request types.
+ */
 public enum RequestType {
     HTTP_GET,
     HTTP_POST,

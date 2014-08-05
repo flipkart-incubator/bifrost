@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.framework.impl.client;
+package com.flipkart.bifrost.framework.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.bifrost.framework.*;
-import com.flipkart.bifrost.protocol.ProtocolRequest;
-import com.flipkart.bifrost.protocol.ProtocolResponse;
-import com.flipkart.bifrost.rabbitmq.Connection;
+import com.flipkart.bifrost.framework.Connection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.rabbitmq.client.AMQP;
@@ -40,7 +38,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
+class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
     private static final Logger logger = LoggerFactory.getLogger(RabbitMQBifrostExecutor.class.getSimpleName());
 
     private static final class ReplyListener<T> extends DefaultConsumer {
@@ -204,6 +202,7 @@ public class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
                 channel.basicCancel(listener.getConsumerTag());
                 channel.close();
             }
+            //TODO::Save the futures and shut them down
         } catch (Exception e) {
             logger.error("Error publishing: ", e);
         }

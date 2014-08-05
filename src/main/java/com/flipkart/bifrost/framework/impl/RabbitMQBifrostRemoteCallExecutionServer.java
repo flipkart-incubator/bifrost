@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.framework.impl.server;
+package com.flipkart.bifrost.framework.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.bifrost.framework.BifrostException;
-import com.flipkart.bifrost.framework.RemoteCallExecutionServer;
-import com.flipkart.bifrost.rabbitmq.Connection;
+import com.flipkart.bifrost.framework.BifrostRemoteCallExecutionServer;
+import com.flipkart.bifrost.framework.Connection;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.rabbitmq.client.Channel;
@@ -27,15 +27,15 @@ import com.rabbitmq.client.Channel;
 import java.io.IOException;
 import java.util.List;
 
-public class RabbitMQRemoteCallExecutionServer<T> extends RemoteCallExecutionServer<T> {
+class RabbitMQBifrostRemoteCallExecutionServer<T> extends BifrostRemoteCallExecutionServer<T> {
     private List<RabbitMQExecutionServerListener<T>> listeners = Lists.newArrayList();
     private Connection connection;
     private ObjectMapper mapper;
     private int concurrency;
     private String requestQueue;
 
-    RabbitMQRemoteCallExecutionServer(Connection connection, ObjectMapper mapper,
-                                      int concurrency, String requestQueue) {
+    RabbitMQBifrostRemoteCallExecutionServer(Connection connection, ObjectMapper mapper,
+                                             int concurrency, String requestQueue) {
         this.connection = connection;
         this.mapper = mapper;
         this.concurrency = concurrency;

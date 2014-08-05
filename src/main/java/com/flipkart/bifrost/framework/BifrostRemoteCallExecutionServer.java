@@ -16,18 +16,38 @@
 
 package com.flipkart.bifrost.framework;
 
-import com.flipkart.bifrost.framework.impl.server.RabbitMQExecutionServerBuilder;
+import com.flipkart.bifrost.framework.impl.RabbitMQExecutionServerBuilder;
 
-public abstract class RemoteCallExecutionServer<T> {
+/**
+ * An execution server for the incoming requests. Call {@link BifrostRemoteCallExecutionServer#start()} to start up the server.
+ * @param <T> The type of the response object to be sent back.
+ */
+public abstract class BifrostRemoteCallExecutionServer<T> {
     public static final class Builder<T> extends RabbitMQExecutionServerBuilder<T> {
         private Builder(Class<? extends RemoteCallable> callerSubType) {
             super(callerSubType);
         }
     }
 
+    /**
+     * Get a builder for the execution server.
+     * @param callerSubType
+     * @param <T>
+     * @return
+     */
     public static<T>  Builder<T> builder(Class<? extends RemoteCallable> callerSubType) {
-        return new Builder<T>(callerSubType);
+        return new Builder<>(callerSubType);
     }
+
+    /**
+     * Start the execution server.
+     * @throws BifrostException in case of any error.
+     */
     abstract public void start() throws BifrostException;
+
+    /**
+     * Stop the execution server.
+     * @throws BifrostException in case of any error.
+     */
     abstract public void stop() throws BifrostException;
 }

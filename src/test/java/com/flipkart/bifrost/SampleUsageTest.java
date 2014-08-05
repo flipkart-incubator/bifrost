@@ -19,10 +19,10 @@ package com.flipkart.bifrost;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.bifrost.framework.BifrostExecutor;
-import com.flipkart.bifrost.framework.RemoteCallExecutionServer;
+import com.flipkart.bifrost.framework.BifrostRemoteCallExecutionServer;
 import com.flipkart.bifrost.framework.RemoteCallable;
 import com.flipkart.bifrost.http.HttpCallCommand;
-import com.flipkart.bifrost.rabbitmq.Connection;
+import com.flipkart.bifrost.framework.Connection;
 import com.google.common.collect.Lists;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class SampleUsageTest {
                 .build();
 
         //Create execution server
-        RemoteCallExecutionServer<Map<String,Object>> executionServer = RemoteCallExecutionServer.<Map<String,Object>>builder(HttpCallCommand.class)
+        BifrostRemoteCallExecutionServer<Map<String,Object>> executionServer = BifrostRemoteCallExecutionServer.<Map<String,Object>>builder(HttpCallCommand.class)
                                                                                 .objectMapper(mapper)
                                                                                 .connection(connection)
                                                                                 .concurrency(10)

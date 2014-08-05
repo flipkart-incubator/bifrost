@@ -37,37 +37,73 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 
-
+/**
+ * An implementation of {@link com.flipkart.bifrost.framework.RemoteCallable} that can be used to make remote HTTP calls.
+ * Use one of the named constructors to instantiate.
+ * @param <T>
+ */
 public class HttpCallCommand<T> extends RemoteCallable<T> {
     private static final Logger logger = LoggerFactory.getLogger(HttpCallCommand.class.getSimpleName());
 
     private static final CloseableHttpClient client = HttpClients.createDefault();
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * The {@link com.flipkart.bifrost.http.RequestType} for this HTTP request.
+     * Set to {@link com.flipkart.bifrost.http.RequestType#HTTP_GET} by default.
+     */
     @JsonProperty
     private RequestType requestType= RequestType.HTTP_GET;
 
+    /**
+     * The url to hit.
+     */
     @JsonProperty
     private String url;
 
+    /**
+     * Custom headers to be sent in the request.
+     */
     @JsonProperty
     private Map<String, String> headers;
 
+    /**
+     * The <i>Content-type</i> header.
+     */
     @JsonProperty
     private String contentType = "application/json";
 
+    /**
+     * The request object to be serialized and sent out as payload.
+     */
     @JsonProperty
     private Object request;
 
+    /**
+     * The timeout for the request in milliseconds.
+     */
     @JsonProperty
     private int timeout;
 
+    /**
+     * The response type to be considered as the successful response for the endpoint.
+     * It's set to HTTP-OK (200) by default.
+     */
     private int successStatus = HttpStatus.SC_OK;
 
+    /**
+     * For internal use during de-serialization.
+     */
     public HttpCallCommand() {
         super("http");
     }
 
+    /**
+     * Create a HTTP Get request.
+     * @param url The URL to hit.
+     * @param <U> The type to which the response will be deserialized to.
+     * @return The constructed request. You can set other params using the setters.
+     */
     public static<U> HttpCallCommand<U> createGet(final String url) {
         HttpCallCommand<U> request = new HttpCallCommand<U>();
         request.setRequestType(RequestType.HTTP_GET);
@@ -75,24 +111,44 @@ public class HttpCallCommand<T> extends RemoteCallable<T> {
         return request;
     }
 
+    /**
+     * Create a HTTP Post request.
+     * @param url The URL to hit.
+     * @param payload The request body.
+     * @param <U> The type to which the response will be deserialized to.
+     * @return The constructed request. You can set other params using the setters.
+     */
     public static<U> HttpCallCommand<U> createPost(final String url, Object payload) {
-        HttpCallCommand<U> request = new HttpCallCommand<U>();
+        HttpCallCommand<U> request = new HttpCallCommand<>();
         request.setRequestType(RequestType.HTTP_POST);
         request.setUrl(url);
         request.setRequest(payload);
         return request;
     }
 
+    /**
+     * Create a HTTP Put request.
+     * @param url The URL to hit.
+     * @param payload The request body.
+     * @param <U> The type to which the response will be deserialized to.
+     * @return The constructed request. You can set other params using the setters.
+     */
     public static<U> HttpCallCommand<U> createPut(final String url, Object payload) {
-        HttpCallCommand<U> request = new HttpCallCommand<U>();
+        HttpCallCommand<U> request = new HttpCallCommand<>();
         request.setRequestType(RequestType.HTTP_PUT);
         request.setUrl(url);
         request.setRequest(payload);
         return request;
     }
 
+    /**
+     * Create a HTTP Get request.
+     * @param url The URL to hit.
+     * @param <U> The type to which the response will be deserialized to.
+     * @return The constructed request. You can set other params using the setters.
+     */
     public static<U> HttpCallCommand<U> createDelete(final String url) {
-        HttpCallCommand<U> request = new HttpCallCommand<U>();
+        HttpCallCommand<U> request = new HttpCallCommand<>();
         request.setRequestType(RequestType.HTTP_DELETE);
         request.setUrl(url);
         return request;

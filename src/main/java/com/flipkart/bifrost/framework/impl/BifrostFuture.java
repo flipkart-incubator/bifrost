@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.framework;
-
-import com.flipkart.bifrost.protocol.ProtocolResponse;
+package com.flipkart.bifrost.framework.impl;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class BifrostFuture<V> implements Future<V> {
+import com.flipkart.bifrost.framework.BifrostException;
+
+/**
+ * A custom future implementation.
+ * @param <V>
+ */
+class BifrostFuture<V> implements Future<V> {
     private Future<ProtocolResponse<V>> mainFuture;
 
     public BifrostFuture(Future<ProtocolResponse<V>> dataContainerFuture) {

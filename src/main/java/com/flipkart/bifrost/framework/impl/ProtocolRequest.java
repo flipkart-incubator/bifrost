@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.flipkart.bifrost.protocol;
+package com.flipkart.bifrost.framework.impl;
 
 import com.flipkart.bifrost.framework.RemoteCallable;
 
-public class ProtocolRequest<T> {
+class ProtocolRequest<T> {
     private boolean responseReturned = true;
     private RemoteCallable<T> callable;
 

@@ -16,6 +16,9 @@
 
 package com.flipkart.bifrost.framework;
 
+/**
+ * The exception object thrown by most classes in the framework level.
+ */
 public class BifrostException extends Exception {
     public BifrostException(ErrorCode errorCode, String message) {
         super(message);
