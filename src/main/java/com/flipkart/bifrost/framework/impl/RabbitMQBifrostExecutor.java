@@ -43,6 +43,7 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
 
     private static final class ReplyListener<T> extends DefaultConsumer {
         private ConcurrentMap<String, CallResultWaiter<T>> waiters;
+        private ConcurrentMap<String, RemoteListenableTask<T>> listeners;
         private ObjectMapper mapper;
 
         /**
@@ -50,9 +51,11 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
          *
          * @param channel the channel to which this consumer is attached
          */
-        public ReplyListener(Channel channel, ConcurrentMap<String, CallResultWaiter<T>> waiters, ObjectMapper mapper) {
+        public ReplyListener(Channel channel, ConcurrentMap<String, CallResultWaiter<T>> waiters,
+                             ConcurrentMap<String, RemoteListenableTask<T>> listeners, ObjectMapper mapper) {
             super(channel);
             this.waiters = waiters;
+            this.listeners = listeners;
             this.mapper = mapper;
         }
 
@@ -61,10 +64,15 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
                                    AMQP.BasicProperties properties, byte[] body) throws IOException {
             String correlationId = properties.getCorrelationId();
             try {
+                ProtocolResponse<T> protocolResponse = mapper.readValue(
+                                                            body, new TypeReference<ProtocolResponse<T>>() {});
+                RemoteListenableTask<T> listener = listeners.get(correlationId);
+                if(null != listener) {
+                    sendProtocolReponseToListener(listener, protocolResponse);
+                }
                 CallResultWaiter<T> waiter = waiters.get(correlationId);
                 if(null != waiter) {
-                    waiter.setResult(mapper.<ProtocolResponse<T>>readValue(
-                                            body, new TypeReference<ProtocolResponse<T>>() {}));
+                    waiter.setResult(protocolResponse);
                 }
             } catch (Exception e) {
                 logger.error("Error handling incoming message: ", e);
@@ -76,6 +84,19 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
                 }
             }
             waiters.remove(correlationId);
+        }
+
+        private void sendProtocolReponseToListener(RemoteListenableTask<T> listener, ProtocolResponse<T> protocolResponse) {
+            RemoteCallable<T> callable = listener.getCallable();
+            RemoteCallableCompletionListener<T> completionListener = listener.getCompletionListener();
+            if(null == protocolResponse) {
+                completionListener.onError(callable, new BifrostException(BifrostException.ErrorCode.IO_ERROR, "Could not get response"));
+                return;
+            }
+            if(!protocolResponse.isSuccessful()) {
+                completionListener.onError(callable, new BifrostException(protocolResponse.getErrorCode(), protocolResponse.getErrorMessage()));
+            }
+            completionListener.onComplete(callable, protocolResponse.getResponse());
         }
 
 
@@ -129,6 +150,7 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
     }
 
     private ConcurrentMap<String, CallResultWaiter<T>> waiters = Maps.newConcurrentMap();
+    private ConcurrentMap<String, RemoteListenableTask<T>> handlers = Maps.newConcurrentMap();
     private List<ReplyListener<T>> listeners = Lists.newArrayList();
     private Channel publishChannel;
     private ExecutorService executorService;
@@ -156,7 +178,7 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
         for(int i = 0; i < concurrency; i++) {
             Channel channel = connection.getConnection().createChannel();
             channel.basicQos(1);
-            ReplyListener<T> listener = new ReplyListener<T>(channel, waiters, objectMapper);
+            ReplyListener<T> listener = new ReplyListener<T>(channel, waiters, handlers, objectMapper);
             channel.basicConsume(replyQueueName, listener);
             listeners.add(listener);
         }
@@ -190,6 +212,23 @@ class RabbitMQBifrostExecutor<T> extends BifrostExecutor<T> {
         } catch (Exception e) {
             logger.error("Error publishing: ", e);
             throw new BifrostException(BifrostException.ErrorCode.SERIALIZATION_ERROR, "Could not serialize request");
+        }
+    }
+
+    @Override
+    public void submit(RemoteListenableTask<T> listenableTask) throws BifrostException {
+        final String correlationId = UUID.randomUUID().toString();
+        AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+                .correlationId(correlationId)
+                .replyTo(replyQueueName)
+                .build();
+        try {
+            handlers.put(correlationId, listenableTask);
+            publishChannel.basicPublish("", requestQueue, properties,
+                    objectMapper.writeValueAsBytes(new ProtocolRequest<>(listenableTask.getCallable(), true)));
+        } catch (Exception e) {
+            logger.error("Error occurred while submitting job: ", e);
+            waiters.get(correlationId).setResult(new ProtocolResponse<T>(BifrostException.ErrorCode.IO_ERROR, "Message publication error"));
         }
     }
 

@@ -62,6 +62,13 @@ public abstract class BifrostExecutor<T> {
     abstract public void submit(RemoteTask<T> callable) throws BifrostException;
 
     /**
+     * A completely async remote execution task that invokes the callback when the call completes.
+     * @param listenableTask
+     * @throws BifrostException
+     */
+    abstract public void submit(RemoteListenableTask<T> listenableTask) throws BifrostException;
+
+    /**
      * Shutdown the executor.
      * @throws BifrostException
      */
